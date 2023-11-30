@@ -1,0 +1,76 @@
+#!/usr/bin/env bash
+
+set -e
+
+# This script is for adding a database record to the pgbouncer.ini file.
+#
+# Example:
+#
+#   Use connection string:
+#     $ add-db "postgres://postgres:secure-password@localhost:5432/db"
+#
+#   Use host, port, database, user and password:
+#     $ add-db localhost 5432 db postgres secure-password
+
+## Parameter  | Description
+#############################
+# host        | The IP address of the host
+# port        | The port on which the host is listening
+# dbname      | The (optional) database name
+# user        | A user name (if different from the information specified by the connecting client)
+# password    | A password (if different from the information specified by the connecting client)
+
+is_connection_string() {
+  # Check if the connection string is provided
+  if [ -z "$1" ]; then
+    return 1
+  fi
+
+  # Check if the connection string starts with 'postgresql://' or 'postgres://'
+  if ! echo "$1" | grep -q "^postgres\(ql\)\?://"; then
+    return 1
+  fi
+
+  return 0
+}
+
+is_db_exists() {
+  _db=$1
+  if grep -q "^$_db" "$PGBOUNCER_INI"; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+# If the second parameter is a URL, then parse it and return the parts
+if is_connection_string "$2"; then
+  echo "Parsing connection string..."
+  IFS=' ' read -ra parsed <<<"$(parse-conn $2)"
+  host=${parsed[0]}
+  port=${parsed[1]}
+  dbname=${parsed[2]}
+  user=${parsed[3]}
+  password=${parsed[4]}
+else
+  host=$2
+  port=$3
+  dbname=$4
+  user=$5
+  password=$6
+fi
+
+# first parameter is the name of the database
+if is_db_exists "$dbname"; then
+  echo "Database '$dbname' already exists in $PGBOUNCER_INI"
+  exit 1
+fi
+
+# Make record string
+record="$dbname = host=$host port=$port ${dbname:+dbname=$dbname }user=$user ${password:+password=$password }"
+
+# Add record to pgbouncer.ini
+sed -i "s/^\[databases\]/\[databases\]\n$record/" "$PGBOUNCER_INI"
+
+# Print the record
+echo "$record"

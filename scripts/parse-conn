@@ -1,0 +1,59 @@
+#!/bin/sh
+
+set -e
+
+# This script is for parsing the Postgres connection string and it will return the parts
+# of the connection string like the following:
+#
+#   <host> <port> <database> <user> <password>
+#
+# Example:
+#
+#   $ parse-conn "postgres://postgres:secure-password@localhost:5432/db"
+#   localhost 5432 db postgres secure-password
+#
+# The script is based on the following StackOverflow answer:
+# https://stackoverflow.com/a/17287984/146289
+
+SCRIPT=$(basename "$0")
+
+CONN_STRING=$1
+if [ -z "$CONN_STRING" ]; then
+  echo "Usage: $SCRIPT <connection-string>"
+  exit 1
+fi
+
+# Parsing the connection string
+proto="$(echo $CONN_STRING | grep :// | sed -e's,^\(.*://\).*,\1,g')"
+url="$(echo $CONN_STRING | sed -e s,$proto,,g)"
+userpass="$(echo $url | grep @ | cut -d@ -f1)"
+hostport="$(echo $url | sed -e s,$userpass@,,g | cut -d/ -f1)"
+port="$(echo $hostport | grep : | cut -d: -f2)"
+
+
+# Init variables
+HOST=""
+PORT="${port:-5432}"
+DATABASE=""
+USER=""
+PASSWORD=""
+
+# Fill variables
+if [ -n "$port" ]; then # if port is defined in the url
+  HOST=$(echo $hostport | grep : | cut -d: -f1)
+else
+  HOST=$hostport
+fi
+
+PASSWORD="$(echo $userpass | grep : | cut -d: -f2)"
+
+if [ -n "$PASSWORD" ]; then
+  USER=$(echo $userpass | grep : | cut -d: -f1)
+else
+  USER=$userpass
+fi
+
+NAME="$(echo $url | grep / | cut -d/ -f2-)"
+
+# Print variables
+echo "$HOST $PORT $NAME $USER $PASSWORD"
