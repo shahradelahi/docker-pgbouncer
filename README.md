@@ -75,7 +75,7 @@ docker run --rm \
 To define multiple databases, you have to provide environment variables with the following format:
 
 ```txt
-DB_<name>_URL = <connection_string>
+DB_URL_<name> = <connection_string>
 ```
 
 ```yaml
