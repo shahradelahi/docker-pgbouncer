@@ -2,6 +2,7 @@
 
 set -e
 
+####
 # This script is for parsing the Postgres connection string and it will return the parts
 # of the connection string like the following:
 #
@@ -12,8 +13,10 @@ set -e
 #   $ parse-conn "postgres://postgres:secure-password@localhost:5432/db"
 #   localhost 5432 db postgres secure-password
 #
-# The script is based on the following StackOverflow answer:
-# https://stackoverflow.com/a/17287984/146289
+# The script is based on the following references:
+#   https://stackoverflow.com/a/17287984/146289
+#   https://github.com/edoburu/docker-pgbouncer/blob/master/entrypoint.sh
+####
 
 SCRIPT=$(basename "$0")
 
@@ -30,15 +33,8 @@ userpass="$(echo $url | grep @ | cut -d@ -f1)"
 hostport="$(echo $url | sed -e s,$userpass@,,g | cut -d/ -f1)"
 port="$(echo $hostport | grep : | cut -d: -f2)"
 
-
-# Init variables
-HOST=""
-PORT="${port:-5432}"
-DATABASE=""
-USER=""
-PASSWORD=""
-
 # Fill variables
+PORT="${port:-5432}"
 if [ -n "$port" ]; then # if port is defined in the url
   HOST=$(echo $hostport | grep : | cut -d: -f1)
 else

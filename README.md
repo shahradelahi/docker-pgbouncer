@@ -14,8 +14,8 @@ A very minimal PgBouncer Docker image based on Alpine Linux.
 
 ```bash
 docker run --rm \
-    -e DB_URL="postgres://<user>:<password>@<hostname>:<port>/<database_name>" \
-    -p 5432:5432 \
+    -e DATABASE_URL="postgres://<user>:<password>@<hostname>:<port>/<database_name>" \
+    -p 6432:6432 \
     litehex/pgbouncer
 ```
 
@@ -23,18 +23,18 @@ Or add credentials separately:
 
 ```bash
 docker run --rm \
-  -e DB_NAME=mydb \
-  -e DB_USER=postgres \
-  -e DB_PASSWORD=secret-password \
-  -e DB_HOST=postgres \
-  -p 5432:5432 \
+  -e DB_NAME="<database-name>" \
+  -e DB_USER="<password>" \
+  -e DB_PASSWORD="<user>" \
+  -e DB_HOST="<host>" \
+  -p 6432:6432 \
   litehex/pgbouncer
 ```
 
-Manage PgBouncer via special administration database `pgbouncer`:
+Then you should be able to connect to PgBouncer:
 
 ```bash
-psql "postgresql://<user>:<password>@localhost:5432/pgbouncer"
+psql "postgresql://<user>:<password>@127.0.0.1:6432/<database-name>"
 ```
 
 ### Environment variables
@@ -52,7 +52,7 @@ environment variables with the following format:
 docker run --rm \
   -e MAX_CLIENT_CONN=100 \
   -e DEFAULT_POOL_SIZE=20 \
-  -p 5432:5432 \
+  -p 6432:6432 \
   litehex/pgbouncer
 ```
 
@@ -66,7 +66,7 @@ This method is only useful if you just want to run PgBouncer on Docker.
 ```bash
 docker run --rm \
   -v /path/to/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini \
-  -p 5432:5432 \
+  -p 6432:6432 \
   litehex/pgbouncer
 ```
 
@@ -86,10 +86,11 @@ services:
     image: 'litehex/pgbouncer:latest'
     restart: unless-stopped
     ports:
-      - '5432:5432'
+      - '6432:6432'
     environment:
       - DB_URL_READ=postgres://<user>:<password>@<hostname>:<port>/<database_name>
       - DB_URL_WRITE=postgres://<user>:<password>@<hostname>:<port>/<database_name>
+      - DB_THIRD="host=<hostname> port=<port> dbname=<database_name> user=<user> password=<password>"
 ```
 
 #### Create an admin user and connect to PgBouncer
@@ -108,19 +109,18 @@ export ADMIN_PASSWORD=$(openssl rand -base64 32)
 
 ```bash
 docker run --rm \
-  -e DB_URL_CATS=postgres://<user>:<password>@<hostname>:<port>/<database_name> \
-  -e ADMIN_USERS=$ADMIN_USER \
+  -e ADMIN_USER=$ADMIN_USER \
   -e ADMIN_PASSWORD=$ADMIN_PASSWORD \
-  -p 5432:5432 \
+  -p 6432:6432 \
   litehex/pgbouncer
 ```
 
-##### 3. Connect to PgBouncer admin database
+##### 3. Connect to PgBouncer administration database
 
 ```bash
-echo $ADMIN_PASSWORD | psql -h localhost -p 5432 -U $ADMIN_USER pgbouncer
+echo $ADMIN_PASSWORD | psql -h localhost -p 6432 -U $ADMIN_USER pgbouncer
 # Or
-psql "postgresql://$ADMIN_USER:$ADMIN_PASSWORD@localhost:5432/pgbouncer"
+psql "postgresql://$ADMIN_USER:$ADMIN_PASSWORD@localhost:6432/pgbouncer"
 ```
 
 ### Credits
