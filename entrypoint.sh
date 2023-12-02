@@ -11,8 +11,22 @@ AUTH_FILE="${PG_CONFIG_DIR}/userlist.txt"
 export PGBOUNCER_INI=${CONFIG_FILE}
 
 add_db_line() {
-  local record="$1 = $2"
+  # strip double quotes from the args
+  local dbname=$(echo "${1}" | sed -e 's/^"//' -e 's/"$//')
+  local value=$(echo "${2}" | sed -e 's/^"//' -e 's/"$//')
+
+  local record="${dbname} = ${value}"
   sed -i "s/^\[databases\]/\[databases\]\n$record/" "$PGBOUNCER_INI"
+}
+
+# A function to remove password values (sanitise)
+sanitised_echo(){
+  # Remove above patterns
+  #   - *[SPACE]password=secret[SPACE]* -> password=[REDACTED]
+  #   - postgres://user:pass@host:5432/dbname* -> postgres://user:[REDACTED]@host:5432/dbname
+  local sanitised=$(echo "${1}" | sed -e 's/\(password=\)[^[:space:]]*/\1[REDACTED]/g')
+  sanitised=$(echo "${sanitised}" | sed -e 's/\(postgres\|postgresql\):\/\/[^[:space:]]*@/\1:\/\/\[REDACTED\]@/g')
+  echo "${sanitised}"
 }
 
 check_db_exists() {
@@ -240,7 +254,7 @@ ${DISABLE_PQEXEC:+disable_pqexec = ${DISABLE_PQEXEC}\n}\
     db_url="${!var}"
     IFS=' ' read -ra parsed <<< "$(parse-conn ${db_url})"
 
-    echo "Adding ${db_url} to ${CONFIG_FILE} to databases section."
+    sanitised_echo "Adding ${db_url} to ${CONFIG_FILE} to databases section."
     add-db "$db_url"
   done
 
@@ -252,7 +266,7 @@ ${DISABLE_PQEXEC:+disable_pqexec = ${DISABLE_PQEXEC}\n}\
   #   DATABASE_URL="postgres://user:pass@host:5432/dbname"
   ###
   if [ -n "${DATABASE_URL}" ]; then
-    echo "Adding ${DATABASE_URL} to ${CONFIG_FILE} as default database."
+    sanitised_echo "Adding ${DATABASE_URL} to ${CONFIG_FILE} as default database."
     add-db "${DATABASE_URL}"
   fi
 
@@ -265,7 +279,7 @@ ${DISABLE_PQEXEC:+disable_pqexec = ${DISABLE_PQEXEC}\n}\
   #   extra: CLIENT_ENCODING, POOL_SIZE, TIMEZONE, POOL_SIZE, RESERVE_POOL, MAX_DB_CONNECTIONS, POOL_MODE, CONNECT_QUERY, APPLICATION_NAME
   ###
   if [ -n "${DB_HOST}" ] && [ -n "${DB_PORT}" ] && [ -n "${DB_USER}" ] && [ -n "${DB_PASSWORD}" ] && [ -n "${DB_NAME}" ]; then
-    echo "Adding ${DB_HOST}:${DB_PORT} to ${CONFIG_FILE} as ${DB_NAME} database."
+    sanitised_echo "Adding ${DB_HOST}:${DB_PORT} to ${CONFIG_FILE} as ${DB_NAME} database."
     if check_db_exists "${DB_NAME}"; then
       echo "Database ${DB_NAME} already exists in ${CONFIG_FILE}."
     else
@@ -285,7 +299,7 @@ ${DISABLE_PQEXEC:+disable_pqexec = ${DISABLE_PQEXEC}\n}\
       # dbname = DB_BAZ -> baz
       db_name=$(echo "${var}" | cut -d_ -f2 | tr '[:upper:]' '[:lower:]')
       # add db to config
-      echo "Adding ${!var} to ${CONFIG_FILE} as ${db_name} database."
+      sanitised_echo "Adding ${!var} to ${CONFIG_FILE} as ${db_name} database."
       add_db_line "${db_name}" "${!var}"
     fi
   done
@@ -347,7 +361,7 @@ echo -e "\n======================== Versions ========================"
 echo -e "Alpine: \c" && cat /etc/alpine-release
 echo -e "PgBouncer: \c" && pgbouncer -V
 echo -e "\n==================== PgBouncer Config ===================="
-cat ${CONFIG_FILE}
+sanitised_echo "$(cat ${CONFIG_FILE})"
 echo -e "========================================================\n"
 sleep 1
 
