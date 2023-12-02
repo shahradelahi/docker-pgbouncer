@@ -15,6 +15,7 @@ A very minimal PgBouncer Docker image based on Alpine Linux.
 ```bash
 docker run --rm \
     -e DATABASE_URL="postgres://<user>:<password>@<hostname>:<port>/<database_name>" \
+    -e USER_<user>="<password>" \
     -p 6432:6432 \
     litehex/pgbouncer
 ```
@@ -42,7 +43,7 @@ psql "postgresql://<user>:<password>@127.0.0.1:6432/<database-name>"
 To configure, please refer to official [PgBouncer documentation](https://www.pgbouncer.org/config.html) and use them as
 environment variables with the following format:
 
-```txt
+```text
   # -e <PGBOUNCER_OPTION>=<value>
 ```
 
@@ -70,12 +71,60 @@ docker run --rm \
   litehex/pgbouncer
 ```
 
+#### Create a PgBouncer user
+
+To define a user and add them to the users section of the auth file, you need to use the following environment
+pattern:
+
+```text
+USER_<name> = <password>
+```
+
+##### Example:
+
+```bash
+docker run --rm \
+  -e USER_UNICORN=securepassword \
+  -p 6432:6432 \
+  litehex/pgbouncer
+```
+
+#### Assign a user to a database
+
+This method is useful when you want to create a user and assign it to multiple databases.
+
+```bash
+docker run --rm \
+  -e DB_<name>="host=<hostname> port=<port> dbname=<database_name> auth_user=<user>" \
+  -e USER_<name>="<password>" \
+  -p 6432:6432 \
+  litehex/pgbouncer
+```
+
+#### Create multiple databases with isolated users access
+
+```bash
+docker run --rm \
+  -e DB_FIRST="host=<hostname> port=<port> dbname=<database_name> auth_user=fu" \
+  -e USER_FU="<password>" \
+  -e DB_SECOND="host=<hostname> port=<port> dbname=<database_name> password=<password> auth_user=su" \
+  -e USER_SU="<password>" \
+  -p 6432:6432 \
+  litehex/pgbouncer
+```
+
 #### Use docker-compose and the ability to use multiple databases
 
 To define multiple databases, you have to provide environment variables with the following format:
 
-```txt
+```text
 DB_URL_<name> = <connection_string>
+```
+
+Or you can use the following format(Its same as PgBouncer config):
+
+```text
+DB_<name> = host=<hostname> port=<port> //...
 ```
 
 ```yaml
@@ -90,7 +139,7 @@ services:
     environment:
       - DB_URL_READ=postgres://<user>:<password>@<hostname>:<port>/<database_name>
       - DB_URL_WRITE=postgres://<user>:<password>@<hostname>:<port>/<database_name>
-      - DB_THIRD="host=<hostname> port=<port> dbname=<database_name> user=<user> password=<password>"
+      - DB_THIRD="host=<hostname> port=<port> dbname=<database_name>
 ```
 
 #### Create an admin user and connect to PgBouncer
@@ -121,36 +170,6 @@ docker run --rm \
 echo $ADMIN_PASSWORD | psql -h localhost -p 6432 -U $ADMIN_USER pgbouncer
 # Or
 psql "postgresql://$ADMIN_USER:$ADMIN_PASSWORD@localhost:6432/pgbouncer"
-```
-
-#### Create a user
-
-To define a user and add them to the users section of the configuration file, you need to use the following environment
-pattern:
-
-```txt
-USER_<name> = <password>
-```
-
-##### Example:
-
-```bash
-docker run --rm \
-  -e USER_UNICORN=securepassword \
-  -p 6432:6432 \
-  litehex/pgbouncer
-```
-
-#### Assign a user to a database
-
-This method is useful when you want to create a user and assign it to multiple databases.
-
-```bash
-docker run --rm \
-  -e DB_<name>="host=<hostname> port=<port> dbname=<database_name> auth_user=<user>" \
-  -e USER_<name>="<password>" \
-  -p 6432:6432 \
-  litehex/pgbouncer
 ```
 
 ### Credits
