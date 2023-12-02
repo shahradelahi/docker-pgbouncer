@@ -10,6 +10,7 @@ RUN apk add --no-cache --virtual .build-deps \
     libc-dev \
     libevent-dev \
     libtool \
+    udns-dev \
     make \
     openssl-dev \
     pkgconf \
@@ -19,6 +20,7 @@ RUN apk add --no-cache --virtual .build-deps \
     zlib-dev \
     && apk add --no-cache \
     bash \
+    udns \
     libevent \
     # Install pgbouncer
     && wget -O - "https://pgbouncer.github.io/downloads/files/${VERSION}/pgbouncer-${VERSION}.tar.gz" | tar xz \
