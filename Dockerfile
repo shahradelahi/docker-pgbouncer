@@ -63,3 +63,4 @@ CMD ["/usr/bin/pgbouncer", "/etc/pgbouncer/pgbouncer.ini"]
 #   docker run --rm -p 6432:5432 -v ./pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini litehex/pgbouncer:1.21.0
 #   docker run --rm -p 6432:5432 -e DB_DEFAULT="host=localhost port=5432 dbname=db user=postgres password=securepassword" litehex/pgbouncer:1.21.0
 #   docker run --rm -p 6432:5432 -e ADMIN_USER=superuser -e ADMIN_PASSWORD=securepassword litehex/pgbouncer:1.21.0
+#   docker run --rm -p 6432:5432 -e USER_BAZ=securepassword litehex/pgbouncer:1.21.0

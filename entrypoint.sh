@@ -24,6 +24,14 @@ check_db_exists() {
   fi
 }
 
+add_auth_user() {
+  if grep -q "^\"${1}\"" "${AUTH_FILE}"; then
+    echo "User ${1} not added auth file."
+  else
+    echo "\"${username}\" \"${!var}\"" >> "${AUTH_FILE}"
+  fi
+}
+
 refine_config(){
   # Remove extra space and tabs from end of lines
   sed -i 's/[ \t]*$//' "$PGBOUNCER_INI"
@@ -327,6 +335,13 @@ else
   echo "Using existing pgbouncer config in ${CONFIG_FILE}"
 fi
 
+# Get USER_<name> env vars and add them to auth file
+for var in $(env | grep -E "^USER_" | cut -d= -f1); do
+  # username = USER_BAZ -> baz
+  username=$(echo "${var}" | cut -d_ -f2 | tr '[:upper:]' '[:lower:]')
+  add_auth_user "${username}"
+done
+
 sleep 1
 echo -e "\n======================== Versions ========================"
 echo -e "Alpine: \c" && cat /etc/alpine-release
@@ -335,6 +350,5 @@ echo -e "\n==================== PgBouncer Config ===================="
 cat ${CONFIG_FILE}
 echo -e "========================================================\n"
 sleep 1
-
 
 exec "$@"

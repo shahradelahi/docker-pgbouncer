@@ -7,7 +7,7 @@ A very minimal PgBouncer Docker image based on Alpine Linux.
 - Tiny image size (about 10 MB)
 - Fully configurable via environment variables
 - Support for multiple databases
-- Support for standalone user administration database 
+- Support for standalone user administration database
 - Support for custom configuration file
 
 ### Quickstart
@@ -60,8 +60,8 @@ docker run --rm \
 
 #### Use a custom configuration
 
-Please not e that by going this way you cannot use any option from environment variables.
-This method is only useful if you just want to run PgBouncer on Docker.
+Please note that by going this way, you cannot use any option from environment variables. This method is only useful if
+you just want to run PgBouncer on Docker.
 
 ```bash
 docker run --rm \
@@ -121,6 +121,36 @@ docker run --rm \
 echo $ADMIN_PASSWORD | psql -h localhost -p 6432 -U $ADMIN_USER pgbouncer
 # Or
 psql "postgresql://$ADMIN_USER:$ADMIN_PASSWORD@localhost:6432/pgbouncer"
+```
+
+#### Create a user
+
+To define a user and add them to the users section of the configuration file, you need to use the following environment
+pattern:
+
+```txt
+USER_<name> = <password>
+```
+
+##### Example:
+
+```bash
+docker run --rm \
+  -e USER_UNICORN=securepassword \
+  -p 6432:6432 \
+  litehex/pgbouncer
+```
+
+#### Assign a user to a database
+
+This method is useful when you want to create a user and assign it to multiple databases.
+
+```bash
+docker run --rm \
+  -e DB_<name>="host=<hostname> port=<port> dbname=<database_name> auth_user=<user>" \
+  -e USER_<name>="<password>" \
+  -p 6432:6432 \
+  litehex/pgbouncer
 ```
 
 ### Credits
