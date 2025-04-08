@@ -20,7 +20,7 @@ add_db_line() {
 }
 
 # A function to remove password values (sanitise)
-sanitised_echo(){
+sanitised_echo() {
   # Remove above patterns
   #   - *[SPACE]password=secret[SPACE]* -> password=[REDACTED]
   #   - postgres://user:pass@host:5432/dbname* -> postgres://user:[REDACTED]@host:5432/dbname
@@ -42,11 +42,11 @@ add_auth_user() {
   if grep -q "^\"${1}\"" "${AUTH_FILE}"; then
     echo "User ${1} not added auth file."
   else
-    echo "\"${username}\" \"${!var}\"" >> "${AUTH_FILE}"
+    echo "\"${username}\" \"${!var}\"" >>"${AUTH_FILE}"
   fi
 }
 
-refine_config(){
+refine_config() {
   # Remove extra space and tabs from end of lines
   sed -i 's/[ \t]*$//' "$PGBOUNCER_INI"
 
@@ -246,13 +246,13 @@ ${RESOLV_CONF:+resolv_conf = ${RESOLV_CONF}\n}\
 ${DISABLE_PQEXEC:+disable_pqexec = ${DISABLE_PQEXEC}\n}\
 
 ;;;;;;; END OF FILE ;;;;;;;
-" > "$CONFIG_FILE"
+" >"$CONFIG_FILE"
 
   # get all env vars starting with DB_URL_
   for var in $(env | grep -E "^DB_URL_" | cut -d= -f1); do
     # get the value of the env var
     db_url="${!var}"
-    IFS=' ' read -ra parsed <<< "$(parse-conn ${db_url})"
+    IFS=' ' read -ra parsed <<<"$(parse-conn ${db_url})"
 
     sanitised_echo "Adding ${db_url} to ${CONFIG_FILE} to databases section."
     add-db "$db_url"
@@ -315,7 +315,7 @@ ${DISABLE_PQEXEC:+disable_pqexec = ${DISABLE_PQEXEC}\n}\
     sed -i "s/^admin_users =.*/admin_users = ${ADMIN_USER},/" "$CONFIG_FILE"
     sed -i "s/^stats_users =.*/stats_users = ${ADMIN_USER},/" "$CONFIG_FILE"
     # add user to auth file
-    echo "\"${ADMIN_USER}\" \"${ADMIN_PASSWORD:-}\"" >> "${AUTH_FILE}"
+    echo "\"${ADMIN_USER}\" \"${ADMIN_PASSWORD:-}\"" >>"${AUTH_FILE}"
     # remove , from end of line
     sed -i "s/, *$//" "$CONFIG_FILE"
   fi

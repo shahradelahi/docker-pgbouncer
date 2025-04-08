@@ -10,7 +10,7 @@ concurrency:
   group: "${{ github.workflow }}-${{ github.event.number || github.sha }}"
 
 env:
-  DOCKERHUB_SLUG: litehex/pgbouncer
+  DOCKERHUB_SLUG: shahradel/pgbouncer
 
 jobs:
   build:

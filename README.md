@@ -17,7 +17,7 @@ docker run --rm \
     -e DATABASE_URL="postgres://<user>:<password>@<hostname>:<port>/<database_name>" \
     -e USER_<user>="<password>" \
     -p 6432:6432 \
-    litehex/pgbouncer
+    shahradel/pgbouncer
 ```
 
 Or add credentials separately:
@@ -29,7 +29,7 @@ docker run --rm \
   -e DB_PASSWORD="<user>" \
   -e DB_HOST="<host>" \
   -p 6432:6432 \
-  litehex/pgbouncer
+  shahradel/pgbouncer
 ```
 
 Then you should be able to connect to PgBouncer:
@@ -54,7 +54,7 @@ docker run --rm \
   -e MAX_CLIENT_CONN=100 \
   -e DEFAULT_POOL_SIZE=20 \
   -p 6432:6432 \
-  litehex/pgbouncer
+  shahradel/pgbouncer
 ```
 
 ### Examples
@@ -68,7 +68,7 @@ you just want to run PgBouncer on Docker.
 docker run --rm \
   -v /path/to/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini \
   -p 6432:6432 \
-  litehex/pgbouncer
+  shahradel/pgbouncer
 ```
 
 #### Create a PgBouncer user
@@ -86,7 +86,7 @@ USER_<name> = <password>
 docker run --rm \
   -e USER_UNICORN=securepassword \
   -p 6432:6432 \
-  litehex/pgbouncer
+  shahradel/pgbouncer
 ```
 
 #### Assign a user to a database
@@ -98,7 +98,7 @@ docker run --rm \
   -e DB_<name>="host=<hostname> port=<port> dbname=<database_name> auth_user=<user>" \
   -e USER_<name>="<password>" \
   -p 6432:6432 \
-  litehex/pgbouncer
+  shahradel/pgbouncer
 ```
 
 #### Create multiple databases with isolated users access
@@ -110,7 +110,7 @@ docker run --rm \
   -e DB_SECOND="host=<hostname> port=<port> dbname=<database_name> password=<password> auth_user=su" \
   -e USER_SU="<password>" \
   -p 6432:6432 \
-  litehex/pgbouncer
+  shahradel/pgbouncer
 ```
 
 #### Use docker-compose and the ability to use multiple databases
@@ -132,7 +132,7 @@ version: '3'
 services:
   storage-bouncer:
     container_name: 'storage-bouncer'
-    image: 'litehex/pgbouncer:latest'
+    image: 'shahradel/pgbouncer:latest'
     restart: unless-stopped
     ports:
       - '6432:6432'
@@ -161,7 +161,7 @@ docker run --rm \
   -e ADMIN_USER=$ADMIN_USER \
   -e ADMIN_PASSWORD=$ADMIN_PASSWORD \
   -p 6432:6432 \
-  litehex/pgbouncer
+  shahradel/pgbouncer
 ```
 
 ##### 3. Connect to PgBouncer administration database
