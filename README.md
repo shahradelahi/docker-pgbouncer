@@ -1,3 +1,6 @@
+> [!WARNING]
+> Not this project is no longer maintained. Use [edoburu/docker-pgbouncer](https://github.com/edoburu/docker-pgbouncer) instead.
+
 # PgBouncer Docker image
 
 A very minimal PgBouncer Docker image based on Alpine Linux.
