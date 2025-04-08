@@ -1,5 +1,5 @@
-FROM alpine:3.18
-ARG VERSION=1.21.0
+FROM alpine:3.21
+ARG VERSION=1.24.0
 
 # Update and upgrade packages
 RUN apk update && apk upgrade

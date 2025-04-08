@@ -3,7 +3,9 @@ name: Push Docker Images
 on:
   push:
     branches:
-      - master
+      - main
+
+concurrency: "${{ github.workflow }}-${{ github.ref }}"
 
 jobs:
   push:
@@ -14,11 +16,11 @@ jobs:
 
     env:
       IMAGE_NAME: litehex/pgbouncer
-      LATEST: '1.21.0'
+      LATEST: '1.24.0'
 
     strategy:
       matrix:
-        pgbouncer-version: [ '1.19.1', '1.20.1', '1.21.0' ]
+        pgbouncer-version: [ '1.21.0', '1.22.0', '1.23.0', '1.24.0' ]
 
     steps:
       - uses: actions/checkout@v3
@@ -41,8 +43,12 @@ jobs:
           push: true
           tags: docker.io/${{ env.IMAGE_NAME }}:${{ matrix.pgbouncer-version }}
 
+      - name: Inspect Docker Image
+        run: docker inspect docker.io/${{ env.IMAGE_NAME }}:${{ matrix.pgbouncer-version }}
+
       - name: Add latest tag if the version is the latest
         if: matrix.pgbouncer-version == env.LATEST
         run: |
           docker tag ${IMAGE_NAME}:${{ matrix.pgbouncer-version }} ${IMAGE_NAME}:latest
           docker push ${IMAGE_NAME}:latest
+          docker inspect ${IMAGE_NAME}:latest
